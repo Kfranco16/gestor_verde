@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 // Componente de la página de Login principal
 // Creado con React, TypeScript y estilizado con Tailwind CSS
@@ -18,6 +19,7 @@ const LoginPage = () => {
   const [success, setSuccess] = useState(""); // Mensaje de éxito
   // Nuevo estado para alternar entre registro e inicio de sesión
   const [isRegister, setIsRegister] = useState(true); // true = registro, false = login
+  const router = useRouter(); // Hook para redirección
 
   // Función que maneja el registro de usuario con Supabase
   const handleRegister = async (e: React.FormEvent) => {
@@ -54,6 +56,10 @@ const LoginPage = () => {
       setError(error.message);
     } else {
       setSuccess("¡Inicio de sesión exitoso!");
+      // Redirige al dashboard tras login exitoso
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     }
     setLoading(false);
   };
