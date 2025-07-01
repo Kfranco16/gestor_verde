@@ -66,14 +66,15 @@ const LoginPage = () => {
 
   return (
     // Contenedor principal que centra todo en la pantalla y le da un fondo suave.
-    <main className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="relative w-full max-w-sm m-6">
+    <main className="flex items-center justify-center min-h-screen bg-gray-100 p-4 md:p-8">
+      {/* En desktop, la tarjeta ocupa todo el ancho disponible igual que el dashboard */}
+      <div className="relative w-full flex flex-col items-center justify-center">
         {/* Tarjeta principal con sombra y bordes redondeados */}
-        <div className="relative z-10 p-8 bg-white rounded-xl shadow-lg">
+        <div className="relative z-10 w-full p-6 sm:p-8 md:p-10 bg-white rounded-xl shadow-lg">
           {/* Encabezado con título y subtítulo */}
           <div className="text-center">
             <h1
-              className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-green-500 to-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]"
+              className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-green-500 to-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]"
               style={{
                 WebkitTextStroke: "2px #000", // contorno negro
                 textShadow: "0 0 12px #22c55e", // sombra verde green-500
@@ -81,7 +82,9 @@ const LoginPage = () => {
             >
               ¡Bienvenida <br /> Nana!
             </h1>
-            <p className="mt-5 text-gray-500">Inicia sesión en Gestor Verde</p>
+            <p className="mt-5 text-gray-500 text-base md:text-lg">
+              Inicia sesión en Gestor Verde
+            </p>
           </div>
 
           {/* Espacio para una ilustración (SVG de planta) y línea decorativa */}
@@ -99,7 +102,7 @@ const LoginPage = () => {
 
           {/* Formulario de registro o login */}
           <form
-            className="space-y-6"
+            className="space-y-6 mt-4 md:mt-8"
             onSubmit={isRegister ? handleRegister : handleSignIn}
           >
             {/* Campo de Email */}
