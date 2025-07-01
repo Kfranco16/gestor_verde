@@ -16,6 +16,8 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false); // Estado de carga
   const [error, setError] = useState(""); // Mensaje de error
   const [success, setSuccess] = useState(""); // Mensaje de éxito
+  // Nuevo estado para alternar entre registro e inicio de sesión
+  const [isRegister, setIsRegister] = useState(true); // true = registro, false = login
 
   // Función que maneja el registro de usuario con Supabase
   const handleRegister = async (e: React.FormEvent) => {
@@ -34,6 +36,24 @@ const LoginPage = () => {
       setSuccess(
         "¡Registro exitoso! Revisa tu correo para confirmar tu cuenta."
       );
+    }
+    setLoading(false);
+  };
+
+  // Función para iniciar sesión con Supabase
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
+      setSuccess("¡Inicio de sesión exitoso!");
     }
     setLoading(false);
   };
@@ -71,8 +91,11 @@ const LoginPage = () => {
             />
           </div>
 
-          {/* Formulario de registro */}
-          <form className="space-y-6" onSubmit={handleRegister}>
+          {/* Formulario de registro o login */}
+          <form
+            className="space-y-6"
+            onSubmit={isRegister ? handleRegister : handleSignIn}
+          >
             {/* Campo de Email */}
             <div>
               <label
@@ -135,14 +158,48 @@ const LoginPage = () => {
               </div>
             )}
 
-            {/* Botón de Registrarse */}
+            {/* Botones para alternar entre registro e inicio de sesión */}
+            <div className="flex justify-center gap-4 mt-4">
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg font-semibold border transition-colors ${
+                  isRegister
+                    ? "bg-green-600 text-white"
+                    : "bg-white text-green-600 border-green-600"
+                } hover:bg-green-700 hover:text-white`}
+                onClick={() => setIsRegister(true)}
+                disabled={isRegister}
+              >
+                Registrarse
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg font-semibold border transition-colors ${
+                  !isRegister
+                    ? "bg-green-600 text-white"
+                    : "bg-white text-green-600 border-green-600"
+                } hover:bg-green-700 hover:text-white`}
+                onClick={() => setIsRegister(false)}
+                disabled={!isRegister}
+              >
+                Iniciar sesión
+              </button>
+            </div>
+
+            {/* Botón de Registrarse o Iniciar sesión */}
             <div>
               <button
                 type="submit"
                 className="flex justify-center w-full px-4 py-3 font-semibold text-white bg-green-600 border border-transparent rounded-lg shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-60"
                 disabled={loading}
               >
-                {loading ? "Registrando..." : "Registrarse"}
+                {loading
+                  ? isRegister
+                    ? "Registrando..."
+                    : "Iniciando sesión..."
+                  : isRegister
+                  ? "Registrarse"
+                  : "Iniciar sesión"}
               </button>
             </div>
           </form>
