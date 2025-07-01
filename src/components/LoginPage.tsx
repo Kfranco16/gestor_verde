@@ -3,6 +3,7 @@
 
 // Importamos un icono de una librería popular para darle un toque profesional.
 // (Más adelante te explicaré cómo instalar esta librería de iconos).
+import Image from "next/image";
 import { LockClosedIcon, EnvelopeIcon } from "@heroicons/react/24/solid";
 
 const LoginPage = () => {
@@ -14,14 +15,29 @@ const LoginPage = () => {
         <div className="relative z-10 p-8 bg-white rounded-xl shadow-lg">
           {/* Encabezado */}
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-800">¡Bienvenido!</h1>
-            <p className="mt-2 text-gray-500">Inicia sesión en Gestor Verde</p>
+            <h1
+              className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-green-500 to-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]"
+              style={{
+                WebkitTextStroke: "2px #000", // contorno negro
+                textShadow: "0 0 12px #22c55e", // sombra verde green-500
+              }}
+            >
+              ¡Bienvenida <br /> Nana!
+            </h1>
+            <p className="mt-5 text-gray-500">Inicia sesión en Gestor Verde</p>
           </div>
 
           {/* Espacio para una ilustración (opcional) */}
-          <div className="my-8 text-center">
-            {/* Aquí podríamos poner un SVG de una planta. Por ahora un emoji. */}
-            <span className="text-6xl">🌱</span>
+          <div className="my-8 text-center relative flex items-center justify-center">
+            {/* Línea verde detrás de la imagen */}
+            <div className="absolute left-0 top-1/2 w-full h-1 bg-green-500 -translate-y-1/2 z-0"></div>
+            <Image
+              src="/plant.svg"
+              alt="Planta"
+              width={100}
+              height={100}
+              className="mx-auto rounded-full border-4 border-green-500 shadow-lg ring-4 ring-green-200 hover:scale-110 transition-transform duration-300 relative z-10"
+            />
           </div>
 
           {/* Formulario de Login */}
@@ -85,10 +101,6 @@ const LoginPage = () => {
             </div>
           </form>
         </div>
-
-        {/* Elemento decorativo de fondo */}
-        <div className="absolute top-0 right-0 z-0 w-24 h-24 bg-green-200 rounded-full -mt-12 -mr-12 blur-lg opacity-50"></div>
-        <div className="absolute bottom-0 left-0 z-0 w-24 h-24 bg-teal-200 rounded-full -mb-12 -ml-12 blur-lg opacity-50"></div>
       </div>
     </main>
   );
