@@ -72,25 +72,29 @@ const LoginPage = () => {
         {/* Tarjeta principal con sombra y bordes redondeados */}
         <div className="relative z-10 w-full p-6 sm:p-8 md:p-10 bg-white rounded-xl shadow-lg">
           {/* Encabezado con título y subtítulo */}
-          <div className="text-center">
-            <h1
-              className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-green-500 to-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]"
-              style={{
-                WebkitTextStroke: "2px #000", // contorno negro
-                textShadow: "0 0 12px #22c55e", // sombra verde green-500
-              }}
-            >
-              ¡Bienvenida <br /> Nana!
-            </h1>
-            <p className="mt-5 text-gray-500 text-base md:text-lg">
-              Inicia sesión en Gestor Verde
-            </p>
+          <div className="text-center relative flex flex-col items-center justify-center">
+            {/* Imagen gestor verde con doble línea (borde doble) */}
+            <span className="inline-block rounded-2xl">
+              <span className="block rounded-xl border-4 border-green-500 p-2 shadow-lg drop-shadow-md hover:scale-105 transition-transform duration-300">
+                <Image
+                  src="/gestor verde.png"
+                  alt="Gestor Verde Logo"
+                  width={320}
+                  height={80}
+                  className="mx-auto w-4/5 max-w-full h-auto object-contain rounded-lg md:w-[480px] md:h-[120px] lg:w-[700px] lg:h-[200px]"
+                  priority
+                />
+              </span>
+            </span>
           </div>
 
           {/* Espacio para una ilustración (SVG de planta) y línea decorativa */}
           <div className="my-8 text-center relative flex items-center justify-center">
-            {/* Línea verde detrás de la imagen */}
-            <div className="absolute left-0 top-1/2 w-full h-1 bg-green-500 -translate-y-1/2 z-0"></div>
+            {/* Línea doble verde decorativa */}
+            <div className="absolute left-0 top-1/2 w-full flex flex-col gap-1 -translate-y-1/2 z-0">
+              <div className="h-0.5 w-full bg-green-500 rounded-full"></div>
+              <div className="h-0.5 w-full bg-green-300 rounded-full"></div>
+            </div>
             <Image
               src="/plant.svg"
               alt="Planta"
@@ -199,7 +203,8 @@ const LoginPage = () => {
             <div>
               <button
                 type="submit"
-                className="flex justify-center w-full px-4 py-3 font-semibold text-white bg-green-600 border border-transparent rounded-lg shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-60"
+                className="flex justify-center w-full md:w-[calc(2*8rem+1rem)] mx-auto px-4 py-3 font-semibold text-white bg-green-600 border border-transparent rounded-lg shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-60"
+                style={{ maxWidth: "calc(2 * 8rem + 1rem)" }}
                 disabled={loading}
               >
                 {loading
