@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
+import AddCompanyForm from "@/components/dashboard/AddCompanyForm";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -28,9 +29,12 @@ export default function DashboardPage() {
     );
   }
 
+  // Layout mejorado: el formulario queda en la parte superior y centrado horizontalmente
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gray-50">
-      <h1 className="text-3xl font-bold text-green-700">Bienvenido a tu app</h1>
-    </main>
+    <div className="flex justify-center w-full min-h-screen bg-gray-50 p-4">
+      <div className="w-full max-w-2xl">
+        <AddCompanyForm />
+      </div>
+    </div>
   );
 }
