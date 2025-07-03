@@ -54,13 +54,32 @@ export default function CompanyDetailPage({
       <hr className="my-6" />
       <div className="space-y-4">
         <p>
-          <span className="font-semibold">ID de Cliente:</span> {company.id}
+          <span className="font-semibold">Persona de Contacto:</span>{" "}
+          {company.contact_person || "No especificado"}
         </p>
         <p>
-          <span className="font-semibold">Fecha de Creación:</span>{" "}
-          {new Date(company.created_at).toLocaleString()}
+          <span className="font-semibold">Teléfono:</span>{" "}
+          {company.phone || "No especificado"}
         </p>
-        {/* Aquí puedes añadir el resto de los campos de la misma manera */}
+        <p>
+          <span className="font-semibold">Ubicación:</span>{" "}
+          {company.location_url ? (
+            <a
+              href={company.location_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-green-700 underline hover:text-green-900"
+            >
+              Ver ubicación
+            </a>
+          ) : (
+            "No especificada"
+          )}
+        </p>
+        <p>
+          <span className="font-semibold">Notas:</span>{" "}
+          {company.notes || "Sin notas"}
+        </p>
       </div>
     </div>
   );

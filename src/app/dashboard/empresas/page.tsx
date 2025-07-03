@@ -10,7 +10,10 @@ export type Company = {
   id: number;
   name: string;
   created_at: string;
-  // Puedes añadir los otros campos aquí si los necesitas en la lista
+  contact_person?: string;
+  phone?: string;
+  location_url?: string;
+  notes?: string;
 };
 
 const ManageCompaniesPage = () => {
