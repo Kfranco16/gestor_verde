@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabaseClient";
 import { type Company } from "@/app/dashboard/empresas/page";
 import Link from "next/link";
+import PlantInventory from "@/components/dashboard/PlantInventory";
 
 export default function CompanyDetailPage({
   params,
@@ -81,6 +82,8 @@ export default function CompanyDetailPage({
           {company.notes || "Sin notas"}
         </p>
       </div>
+      {/* Inventario de plantas para esta empresa */}
+      <PlantInventory companyId={company.id} />
     </div>
   );
 }
