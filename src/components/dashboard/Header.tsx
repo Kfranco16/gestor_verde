@@ -19,8 +19,13 @@ const Header = () => {
     <header className="bg-white shadow-md sticky top-0 z-30 w-full">
       <nav className="flex items-center justify-between px-3 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 max-w-full">
         {/* Logo/Nombre de la App */}
-        <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-600 select-none">
-          🌱 Gestor Verde
+        <div className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-green-600 select-none">
+          <img
+            src="/plant.svg"
+            alt="Logo Gestor Verde"
+            className="w-8 h-8 md:w-10 md:h-10"
+          />
+          Gestor Verde
         </div>
         {/* Botón de menú hamburguesa solo en mobile/tablet si hay más opciones */}
         <div className="flex items-center gap-2">
