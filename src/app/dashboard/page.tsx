@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
 import AddCompanyForm from "@/components/dashboard/AddCompanyForm";
 import Link from "next/link";
+import Planner from "@/components/dashboard/Planner";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -62,6 +63,11 @@ export default function DashboardPage() {
             Gestionar Empresas
           </Link>
         </div>
+      </div>
+
+      {/* NUEVO: Tarjeta del planificador */}
+      <div className="mt-8">
+        <Planner />
       </div>
 
       {/* Renderizado Condicional: El formulario solo se muestra si isFormVisible es true */}
