@@ -405,12 +405,6 @@ const PlannerPage = () => {
               >
                 Eliminar
               </button>
-              <button
-                disabled
-                className="px-4 py-2 text-white bg-blue-400 rounded-md cursor-not-allowed w-full md:w-auto"
-              >
-                Modificar (Próx.)
-              </button>
             </div>
           </div>
         </div>
