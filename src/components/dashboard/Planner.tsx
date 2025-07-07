@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
+import UpcomingVisits from "./UpcomingVisits";
 
 const Planner = () => {
   return (
@@ -17,10 +18,8 @@ const Planner = () => {
         Programa y visualiza tus próximas visitas.
       </p>
       <div className="mt-6 flex flex-col items-center">
-        <div className="w-full max-w-md p-4 bg-gray-100 bg-opacity-70 rounded-md border border-gray-200 text-center">
-          <p className="text-black">
-            Vista previa del calendario próximamente.
-          </p>
+        <div className="w-full">
+          <UpcomingVisits />
         </div>
         <Link
           href="/dashboard/planner"
