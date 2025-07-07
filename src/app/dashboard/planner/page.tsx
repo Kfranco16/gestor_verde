@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { supabase } from "@/utils/supabaseClient";
 import { type Company } from "../empresas/page";
+import VisitTasks from "@/components/dashboard/VisitTasks";
 
 // Estilos CSS específicos para móviles
 const mobileCalendarStyles = `
@@ -375,35 +376,46 @@ const PlannerPage = () => {
         </div>
       )}
 
-      {/* --- NUEVO: Modal para VER DETALLES de la visita --- */}
+      {/* --- Modal para VER DETALLES de la visita --- */}
       {isDetailModalOpen && selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent p-4">
-          <div className="p-6 md:p-8 bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="p-6 md:p-8 bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl md:text-2xl font-bold mb-4">
               Detalles de la Visita
             </h2>
-            <p className="mb-2">
-              <b>Empresa:</b> {selectedEvent.title}
-            </p>
-            <p className="mb-2">
-              <b>Fecha:</b> {format(selectedEvent.start, "PPP", { locale: es })}
-            </p>
-            <p className="mb-6">
-              <b>Desde:</b> {format(selectedEvent.start, "p", { locale: es })}
-              <b> Hasta:</b> {format(selectedEvent.end, "p", { locale: es })}
-            </p>
-            <div className="flex flex-col md:flex-row justify-end gap-4">
+
+            {/* Información básica de la visita */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <p className="mb-2">
+                <b>Empresa:</b> {selectedEvent.title}
+              </p>
+              <p className="mb-2">
+                <b>Fecha:</b>{" "}
+                {format(selectedEvent.start, "PPP", { locale: es })}
+              </p>
+              <p className="mb-0">
+                <b>Desde:</b> {format(selectedEvent.start, "p", { locale: es })}
+                <span className="mx-2">•</span>
+                <b>Hasta:</b> {format(selectedEvent.end, "p", { locale: es })}
+              </p>
+            </div>
+
+            {/* Componente de tareas integrado */}
+            <VisitTasks visitId={selectedEvent.resource.id} />
+
+            {/* Botones de acción */}
+            <div className="flex flex-col md:flex-row justify-end gap-4 mt-6 pt-6 border-t border-gray-200">
               <button
                 onClick={() => setIsDetailModalOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded-md w-full md:w-auto"
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md w-full md:w-auto transition-colors duration-200"
               >
                 Cerrar
               </button>
               <button
                 onClick={handleDeleteVisit}
-                className="px-4 py-2 text-white bg-red-600 rounded-md w-full md:w-auto"
+                className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md w-full md:w-auto transition-colors duration-200"
               >
-                Eliminar
+                Eliminar Visita
               </button>
             </div>
           </div>
