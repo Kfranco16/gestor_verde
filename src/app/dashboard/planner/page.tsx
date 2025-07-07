@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { supabase } from "@/utils/supabaseClient";
 import { type Company } from "../empresas/page";
+import VisitTasks from "@/components/dashboard/VisitTasks";
 
 // Estilos CSS específicos para móviles
 const mobileCalendarStyles = `
@@ -141,9 +142,11 @@ const PlannerPage = () => {
   );
 
   const fetchVisits = useCallback(async () => {
+    // MODIFICADO: Ahora solo pedimos las visitas con estado 'creada' para el calendario
     const { data: visits, error } = await supabase
       .from("visits")
-      .select(`id, start_time, end_time, companies ( name )`);
+      .select(`id, start_time, end_time, companies ( name )`)
+      .eq("status", "creada"); // Solo mostramos las visitas planeadas
     if (error) {
       console.error("Error al obtener las visitas:", error);
       return;
@@ -181,13 +184,25 @@ const PlannerPage = () => {
   const handleSaveVisit = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedSlot || !selectedCompany) return;
+
+    // 1. Obtenemos el usuario actual ANTES de insertar
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Error: No se pudo identificar al usuario.");
+      return;
+    }
+
+    // 2. Insertamos la visita, AÑADIENDO el user_id
     const { error } = await supabase.from("visits").insert({
       company_id: selectedCompany,
-      visit_date: selectedSlot.start.toISOString().split("T")[0], // Fecha (YYYY-MM-DD)
       start_time: selectedSlot.start.toISOString(),
       end_time: selectedSlot.end.toISOString(),
-      status: "Planeada",
+      status: "creada",
+      user_id: user.id, // <-- ¡LA LÍNEA QUE FALTABA!
     });
+
     if (error) {
       alert("Error al crear la visita: " + error.message);
     } else {
@@ -233,6 +248,32 @@ const PlannerPage = () => {
         setSelectedEvent(null);
         fetchVisits(); // Refrescamos el calendario
       }
+    }
+  };
+
+  // --- NUEVA FUNCIÓN: Para cambiar el estado de las visitas ---
+  const handleUpdateVisitStatus = async (
+    visitId: number,
+    newStatus: "terminada" | "cancelada"
+  ) => {
+    const updateData: { status: string; completed_at?: string } = {
+      status: newStatus,
+    };
+    if (newStatus === "terminada") {
+      updateData.completed_at = new Date().toISOString(); // Guardamos la fecha y hora actual
+    }
+
+    const { error } = await supabase
+      .from("visits")
+      .update(updateData)
+      .eq("id", visitId);
+
+    if (error) {
+      alert(`Error al actualizar la visita: ${error.message}`);
+    } else {
+      alert(`¡Visita marcada como ${newStatus} con éxito!`);
+      setIsDetailModalOpen(false);
+      fetchVisits(); // Refrescamos el calendario para que la visita desaparezca
     }
   };
 
@@ -375,35 +416,68 @@ const PlannerPage = () => {
         </div>
       )}
 
-      {/* --- NUEVO: Modal para VER DETALLES de la visita --- */}
+      {/* --- Modal para VER DETALLES de la visita --- */}
       {isDetailModalOpen && selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent p-4">
-          <div className="p-6 md:p-8 bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="p-6 md:p-8 bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl md:text-2xl font-bold mb-4">
               Detalles de la Visita
             </h2>
-            <p className="mb-2">
-              <b>Empresa:</b> {selectedEvent.title}
-            </p>
-            <p className="mb-2">
-              <b>Fecha:</b> {format(selectedEvent.start, "PPP", { locale: es })}
-            </p>
-            <p className="mb-6">
-              <b>Desde:</b> {format(selectedEvent.start, "p", { locale: es })}
-              <b> Hasta:</b> {format(selectedEvent.end, "p", { locale: es })}
-            </p>
-            <div className="flex flex-col md:flex-row justify-end gap-4">
+
+            {/* Información básica de la visita */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <p className="mb-2">
+                <b>Empresa:</b> {selectedEvent.title}
+              </p>
+              <p className="mb-2">
+                <b>Fecha:</b>{" "}
+                {format(selectedEvent.start, "PPP", { locale: es })}
+              </p>
+              <p className="mb-0">
+                <b>Desde:</b> {format(selectedEvent.start, "p", { locale: es })}
+                <span className="mx-2">•</span>
+                <b>Hasta:</b> {format(selectedEvent.end, "p", { locale: es })}
+              </p>
+            </div>
+
+            {/* Componente de tareas integrado */}
+            <VisitTasks visitId={selectedEvent.resource.id} />
+
+            {/* Botones de acción */}
+            <div className="flex flex-col md:flex-row justify-end gap-4 mt-6 pt-6 border-t border-gray-200">
               <button
                 onClick={() => setIsDetailModalOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded-md w-full md:w-auto"
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md w-full md:w-auto transition-colors duration-200"
               >
                 Cerrar
               </button>
               <button
-                onClick={handleDeleteVisit}
-                className="px-4 py-2 text-white bg-red-600 rounded-md w-full md:w-auto"
+                onClick={() =>
+                  handleUpdateVisitStatus(
+                    selectedEvent.resource.id,
+                    "cancelada"
+                  )
+                }
+                className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md w-full md:w-auto transition-colors duration-200"
               >
-                Eliminar
+                Cancelar Visita
+              </button>
+              <button
+                onClick={() =>
+                  handleUpdateVisitStatus(
+                    selectedEvent.resource.id,
+                    "terminada"
+                  )
+                }
+                className="px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-md w-full md:w-auto transition-colors duration-200"
+              >
+                Marcar como Terminada
+              </button>
+              <button
+                onClick={handleDeleteVisit}
+                className="px-4 py-2 text-white bg-orange-600 hover:bg-orange-700 rounded-md w-full md:w-auto transition-colors duration-200"
+              >
+                Eliminar Visita
               </button>
             </div>
           </div>
