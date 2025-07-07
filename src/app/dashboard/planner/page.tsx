@@ -292,10 +292,6 @@ const PlannerPage = () => {
         <h1 className="text-xl md:text-3xl font-bold text-gray-800">
           Planificador de Visitas
         </h1>
-        <p className="text-sm md:text-base text-gray-600 mt-2">
-          Aquí se muestran las visitas con estado "Creada". Haz clic en un día
-          para programar una nueva o en una visita existente para gestionarla.
-        </p>
         <button
           onClick={() => router.push("/dashboard")}
           className="px-4 py-2 md:px-6 md:py-3 font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition-colors duration-300 w-full md:w-auto"

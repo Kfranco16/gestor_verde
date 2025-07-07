@@ -7,16 +7,13 @@ import UpcomingVisits from "./UpcomingVisits";
 
 const Planner = () => {
   return (
-    <div className="p-6 mt-8 bg-white rounded-lg shadow-md">
+    <div className="p-6 mt-4 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-gray-700 flex items-center gap-2 justify-center">
         <span className="inline-block p-2 bg-blue-100 rounded-full">
           <CalendarDaysIcon className="w-7 h-7 text-blue-500" />
         </span>
         Planificador de Visitas
       </h2>
-      <p className="mt-2 text-gray-500 text-center">
-        Programa y visualiza tus próximas visitas.
-      </p>
       <div className="mt-6 flex flex-col items-center">
         <div className="w-full">
           <UpcomingVisits />

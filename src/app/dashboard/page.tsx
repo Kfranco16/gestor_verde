@@ -5,6 +5,7 @@ import { supabase } from "@/utils/supabaseClient";
 import AddCompanyForm from "@/components/dashboard/AddCompanyForm";
 import Link from "next/link";
 import Planner from "@/components/dashboard/Planner";
+import NextVisitTasks from "@/components/dashboard/NextVisitTasks";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -65,9 +66,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* NUEVO: Tarjeta del planificador */}
-      <div className="mt-8">
-        <Planner />
+      {/* Grid principal con secciones del dashboard */}
+      <div className="grid gap-8 mt-8 lg:grid-cols-2">
+        {/* Columna izquierda: Planificador de Visitas */}
+        <div>
+          <Planner />
+        </div>
+
+        {/* Columna derecha: Tareas de la Próxima Visita */}
+        <div>
+          <NextVisitTasks />
+        </div>
       </div>
 
       {/* Renderizado Condicional: El formulario solo se muestra si isFormVisible es true */}
