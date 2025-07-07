@@ -5,6 +5,7 @@ import { supabase } from "@/utils/supabaseClient";
 import { type Company } from "@/app/dashboard/empresas/page";
 import Link from "next/link";
 import PlantInventory from "@/components/dashboard/PlantInventory";
+import VisitHistory from "@/components/dashboard/VisitHistory";
 
 export default function CompanyDetailPage({
   params,
@@ -84,6 +85,9 @@ export default function CompanyDetailPage({
       </div>
       {/* Inventario de plantas para esta empresa */}
       <PlantInventory companyId={company.id} />
+      
+      {/* Historial de visitas para esta empresa */}
+      <VisitHistory companyId={company.id} />
     </div>
   );
 }
