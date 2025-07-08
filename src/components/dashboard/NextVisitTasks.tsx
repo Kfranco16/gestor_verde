@@ -6,11 +6,14 @@ import { supabase } from "@/utils/supabaseClient";
 import { format } from "date-fns/format";
 import { es } from "date-fns/locale/es";
 import VisitTasks from "./VisitTasks"; // Reutilizaremos el componente que ya creamos
+import { useVisitEvents } from "@/utils/visitEvents";
 
 const NextVisitTasks = () => {
   const [nextVisitId, setNextVisitId] = useState<number | null>(null);
   const [nextVisitInfo, setNextVisitInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { onVisitEvent } = useVisitEvents();
 
   useEffect(() => {
     const fetchNextVisit = async () => {
@@ -38,7 +41,6 @@ const NextVisitTasks = () => {
         .single(); // .single() para obtener solo un objeto, no un array
 
       if (visitError || !nextVisit) {
-        console.log("No se encontró una próxima visita.");
         setNextVisitId(null);
         setNextVisitInfo(null);
         setLoading(false);
@@ -47,8 +49,17 @@ const NextVisitTasks = () => {
 
       // 3. Si la encontramos, guardamos su ID y su información formateada
       setNextVisitId(nextVisit.id);
-      const companyName =
-        (nextVisit.companies as any)?.name || "Empresa no encontrada";
+      // Manejo flexible para objeto o array
+      const companyName = (() => {
+        if (!nextVisit.companies) return "Empresa no encontrada";
+        if (Array.isArray(nextVisit.companies)) {
+          return nextVisit.companies[0]?.name || "Empresa no encontrada";
+        }
+        return (
+          (nextVisit.companies as { name: string }).name ||
+          "Empresa no encontrada"
+        );
+      })();
       setNextVisitInfo(
         `${companyName} - ${format(
           new Date(nextVisit.start_time),
@@ -61,20 +72,23 @@ const NextVisitTasks = () => {
 
     fetchNextVisit();
 
-    // Escuchar eventos de cambio de estado de visitas
-    const handleVisitStatusChange = () => {
-      fetchNextVisit();
-    };
-
-    window.addEventListener("visitStatusChanged", handleVisitStatusChange);
+    // Escuchar eventos de cambio de estado de visitas usando el sistema de eventos
+    const unsubscribeCreated = onVisitEvent("visit_created", fetchNextVisit);
+    const unsubscribeDeleted = onVisitEvent("visit_deleted", fetchNextVisit);
+    const unsubscribeStatusChanged = onVisitEvent(
+      "visit_status_changed",
+      fetchNextVisit
+    );
 
     return () => {
-      window.removeEventListener("visitStatusChanged", handleVisitStatusChange);
+      unsubscribeCreated();
+      unsubscribeDeleted();
+      unsubscribeStatusChanged();
     };
-  }, []);
+  }, [onVisitEvent]);
 
   return (
-    <div className="p-4 md:p-6 mt-4 bg-white rounded-lg shadow-md">
+    <div className="p-4 md:p-6 bg-white rounded-lg shadow-md">
       <h3 className="text-lg md:text-xl font-bold text-gray-700 mb-4">
         Tareas de la Próxima Visita
       </h3>
@@ -94,9 +108,6 @@ const NextVisitTasks = () => {
         <div className="text-center py-8">
           <p className="text-gray-500 mb-3">
             No hay tareas porque no hay una próxima visita programada.
-          </p>
-          <p className="text-sm text-gray-400">
-            Las tareas aparecerán aquí cuando tengas una visita próxima.
           </p>
         </div>
       )}

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, FormEvent } from "react";
-import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
+import { Calendar, dateFnsLocalizer, Views, View } from "react-big-calendar";
 import { format } from "date-fns/format";
 import { parse } from "date-fns/parse";
 import { startOfWeek } from "date-fns/startOfWeek";
@@ -13,6 +13,29 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { supabase } from "@/utils/supabaseClient";
 import { type Company } from "../empresas/page";
 import VisitTasks from "@/components/dashboard/VisitTasks";
+import { useVisitEvents } from "@/utils/visitEvents";
+
+// Tipos para el planner
+type VisitFromSupabase = {
+  id: number;
+  start_time: string;
+  end_time: string;
+  companies:
+    | {
+        name: string;
+      }[]
+    | {
+        name: string;
+      }
+    | null;
+};
+
+type CalendarEvent = {
+  title: string;
+  start: Date;
+  end: Date;
+  resource: { id: number };
+};
 
 // Estilos CSS específicos para móviles
 const mobileCalendarStyles = `
@@ -111,21 +134,18 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-type CalendarEvent = {
-  title: string;
-  start: Date;
-  end: Date;
-  resource: { id: number };
-};
-
 const PlannerPage = () => {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [currentView, setCurrentView] = useState(Views.WORK_WEEK);
+  const [currentView, setCurrentView] = useState<View>(Views.WORK_WEEK);
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Sistema de eventos para notificar cambios
+  const { notifyVisitCreated, notifyVisitDeleted, notifyVisitStatusChanged } =
+    useVisitEvents();
 
   // Modal para crear visita
   const [isNewVisitModalOpen, setIsNewVisitModalOpen] = useState(false);
@@ -142,22 +162,72 @@ const PlannerPage = () => {
   );
 
   const fetchVisits = useCallback(async () => {
-    // MODIFICADO: Ahora solo pedimos las visitas con estado 'creada' para el calendario
+    // 1. Primero obtenemos el usuario actual
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("Usuario no autenticado");
+      return;
+    }
+
+    // 2. Filtramos las visitas por usuario actual
     const { data: visits, error } = await supabase
       .from("visits")
-      .select(`id, start_time, end_time, companies ( name )`)
-      .eq("status", "creada"); // Solo mostramos las visitas planeadas
+      .select(
+        `
+        id, 
+        start_time, 
+        end_time, 
+        company_id,
+        companies!inner ( name )
+      `
+      )
+      .eq("status", "creada") // Solo mostramos las visitas planeadas
+      .eq("user_id", user.id); // Filtrar por usuario actual
+
     if (error) {
       console.error("Error al obtener las visitas:", error);
       return;
     }
-    const calendarEvents =
-      visits?.map((visit: any) => ({
-        title: visit.companies?.name || "Visita",
-        start: new Date(visit.start_time),
-        end: new Date(visit.end_time),
-        resource: { id: visit.id },
-      })) || [];
+
+    const calendarEvents: CalendarEvent[] =
+      visits?.map((visit: VisitFromSupabase) => {
+        // Función helper para extraer el nombre de la empresa
+        const getCompanyName = (
+          companies: VisitFromSupabase["companies"]
+        ): string => {
+          if (!companies) return "Visita sin empresa";
+
+          // Si es un array
+          if (Array.isArray(companies)) {
+            if (companies.length > 0 && companies[0]?.name) {
+              return companies[0].name;
+            }
+          }
+
+          // Si es un objeto directo
+          if (
+            typeof companies === "object" &&
+            "name" in companies &&
+            companies.name
+          ) {
+            return companies.name;
+          }
+
+          return "Visita sin empresa";
+        };
+
+        const companyName = getCompanyName(visit.companies);
+
+        return {
+          title: companyName,
+          start: new Date(visit.start_time),
+          end: new Date(visit.end_time),
+          resource: { id: visit.id },
+        };
+      }) || [];
+
     setEvents(calendarEvents);
   }, []);
   useEffect(() => {
@@ -173,8 +243,25 @@ const PlannerPage = () => {
 
     fetchVisits();
     const fetchCompanies = async () => {
-      // Trae todos los campos requeridos por Company
-      const { data, error } = await supabase.from("companies").select();
+      // 1. Primero obtenemos el usuario actual
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error("Usuario no autenticado");
+        return;
+      }
+
+      // 2. Filtramos las empresas por usuario actual
+      const { data, error } = await supabase
+        .from("companies")
+        .select()
+        .eq("user_id", user.id); // Filtrar por usuario actual
+
+      if (error) {
+        console.error("Error al obtener empresas:", error);
+        return;
+      }
       if (data) setCompanies(data as Company[]);
     };
     fetchCompanies();
@@ -210,6 +297,11 @@ const PlannerPage = () => {
       setIsNewVisitModalOpen(false);
       setSelectedCompany("");
       fetchVisits();
+      // Notificar a otros componentes sobre la nueva visita
+      notifyVisitCreated({
+        company_id: selectedCompany,
+        start_time: selectedSlot.start.toISOString(),
+      });
     }
   };
   const handleSelectSlot = useCallback(
@@ -247,6 +339,11 @@ const PlannerPage = () => {
         setIsDetailModalOpen(false);
         setSelectedEvent(null);
         fetchVisits(); // Refrescamos el calendario
+        // Notificar a otros componentes sobre la eliminación
+        notifyVisitDeleted({
+          visit_id: selectedEvent.resource.id,
+          company_name: selectedEvent.title,
+        });
       }
     }
   };
@@ -256,11 +353,17 @@ const PlannerPage = () => {
     visitId: number,
     newStatus: "terminada" | "cancelada"
   ) => {
-    const updateData: { status: string; completed_at?: string } = {
+    const updateData: {
+      status: string;
+      completed_at?: string;
+      cancelled_at?: string;
+    } = {
       status: newStatus,
     };
     if (newStatus === "terminada") {
       updateData.completed_at = new Date().toISOString(); // Guardamos la fecha y hora actual
+    } else if (newStatus === "cancelada") {
+      updateData.cancelled_at = new Date().toISOString(); // Guardamos la fecha y hora de cancelación
     }
 
     const { error } = await supabase
@@ -274,6 +377,12 @@ const PlannerPage = () => {
       alert(`¡Visita marcada como ${newStatus} con éxito!`);
       setIsDetailModalOpen(false);
       fetchVisits(); // Refrescamos el calendario para que la visita desaparezca
+      // Notificar a otros componentes sobre el cambio de estado
+      notifyVisitStatusChanged({
+        visit_id: visitId,
+        new_status: newStatus,
+        company_name: selectedEvent?.title,
+      });
     }
   };
 
@@ -282,7 +391,7 @@ const PlannerPage = () => {
     setCurrentDate(newDate);
   }, []);
 
-  const handleViewChange = useCallback((view: any) => {
+  const handleViewChange = useCallback((view: View) => {
     setCurrentView(view);
   }, []);
 

@@ -2,11 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { supabase } from "@/utils/supabaseClient";
 import { format } from "date-fns/format";
 import { es } from "date-fns/locale/es";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import { useVisitEvents } from "@/utils/visitEvents";
 
 type UpcomingVisit = {
   id: number;
@@ -18,6 +18,8 @@ const UpcomingVisits = () => {
   const [visits, setVisits] = useState<UpcomingVisit[]>([]);
   const [loading, setLoading] = useState(true);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  const { onVisitEvent, notifyVisitStatusChanged } = useVisitEvents();
 
   useEffect(() => {
     const fetchUpcomingVisits = async () => {
@@ -48,10 +50,10 @@ const UpcomingVisits = () => {
       } else {
         // Transformamos los datos para que coincidan con nuestro tipo
         const transformedData: UpcomingVisit[] = (data || []).map(
-          (visit: any) => ({
+          (visit: { id: number; start_time: string; companies: unknown }) => ({
             id: visit.id,
             start_time: visit.start_time,
-            companies: visit.companies,
+            companies: visit.companies as { name: string } | null,
           })
         );
         setVisits(transformedData);
@@ -60,7 +62,27 @@ const UpcomingVisits = () => {
     };
 
     fetchUpcomingVisits();
-  }, []);
+
+    // Escuchar eventos de cambios en las visitas
+    const unsubscribeCreated = onVisitEvent(
+      "visit_created",
+      fetchUpcomingVisits
+    );
+    const unsubscribeDeleted = onVisitEvent(
+      "visit_deleted",
+      fetchUpcomingVisits
+    );
+    const unsubscribeStatusChanged = onVisitEvent(
+      "visit_status_changed",
+      fetchUpcomingVisits
+    );
+
+    return () => {
+      unsubscribeCreated();
+      unsubscribeDeleted();
+      unsubscribeStatusChanged();
+    };
+  }, [onVisitEvent]);
 
   // Cerrar menú cuando se hace clic fuera
   useEffect(() => {
@@ -79,11 +101,17 @@ const UpcomingVisits = () => {
     visitId: number,
     newStatus: "terminada" | "cancelada"
   ) => {
-    const updateData: { status: string; completed_at?: string } = {
+    const updateData: {
+      status: string;
+      completed_at?: string;
+      cancelled_at?: string;
+    } = {
       status: newStatus,
     };
     if (newStatus === "terminada") {
       updateData.completed_at = new Date().toISOString();
+    } else if (newStatus === "cancelada") {
+      updateData.cancelled_at = new Date().toISOString();
     }
 
     const { error } = await supabase
@@ -97,11 +125,13 @@ const UpcomingVisits = () => {
       alert(`¡Visita marcada como ${newStatus} con éxito!`);
       setOpenMenuId(null); // Cerrar el menú
 
-      // Emitir evento para notificar a NextVisitTasks
-      const event = new CustomEvent("visitStatusChanged", {
-        detail: { visitId, newStatus },
+      // Notificar a otros componentes usando el sistema de eventos
+      const visitData = visits.find((v) => v.id === visitId);
+      notifyVisitStatusChanged({
+        visit_id: visitId,
+        new_status: newStatus,
+        company_name: visitData?.companies?.name || "Empresa desconocida",
       });
-      window.dispatchEvent(event);
 
       // Refrescar la lista de visitas
       const {
@@ -120,10 +150,14 @@ const UpcomingVisits = () => {
 
         if (!error) {
           const transformedData: UpcomingVisit[] = (data || []).map(
-            (visit: any) => ({
+            (visit: {
+              id: number;
+              start_time: string;
+              companies: unknown;
+            }) => ({
               id: visit.id,
               start_time: visit.start_time,
-              companies: visit.companies,
+              companies: visit.companies as { name: string } | null,
             })
           );
           setVisits(transformedData);
@@ -153,7 +187,18 @@ const UpcomingVisits = () => {
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <p className="font-semibold text-gray-800 mb-1">
-                    {visit.companies?.name || "Empresa no encontrada"}
+                    {(() => {
+                      if (!visit.companies) return "Empresa no encontrada";
+                      if (Array.isArray(visit.companies)) {
+                        return (
+                          visit.companies[0]?.name || "Empresa no encontrada"
+                        );
+                      }
+                      return (
+                        (visit.companies as { name: string }).name ||
+                        "Empresa no encontrada"
+                      );
+                    })()}
                   </p>
                   <p className="text-sm text-gray-600">
                     {format(
@@ -209,12 +254,6 @@ const UpcomingVisits = () => {
       ) : (
         <div className="text-center py-8">
           <p className="text-gray-500 mb-3">No hay visitas programadas.</p>
-          <Link
-            href="/dashboard/planner"
-            className="inline-block px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors duration-200"
-          >
-            Programar primera visita
-          </Link>
         </div>
       )}
     </div>
