@@ -270,7 +270,11 @@ const PlannerPage = () => {
     visitId: number,
     newStatus: "terminada" | "cancelada"
   ) => {
-    const updateData: { status: string; completed_at?: string; cancelled_at?: string } = {
+    const updateData: {
+      status: string;
+      completed_at?: string;
+      cancelled_at?: string;
+    } = {
       status: newStatus,
     };
     if (newStatus === "terminada") {

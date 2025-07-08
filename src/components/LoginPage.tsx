@@ -18,7 +18,7 @@ const LoginPage = () => {
   const [error, setError] = useState(""); // Mensaje de error
   const [success, setSuccess] = useState(""); // Mensaje de éxito
   // Nuevo estado para alternar entre registro e inicio de sesión
-  const [isRegister, setIsRegister] = useState(true); // true = registro, false = login
+  const [isRegister, setIsRegister] = useState(false); // true = registro, false = login
   const router = useRouter(); // Hook para redirección
 
   // Función que maneja el registro de usuario con Supabase

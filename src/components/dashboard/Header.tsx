@@ -2,6 +2,7 @@
 import { supabase } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
 
 const Header = () => {
@@ -20,10 +21,13 @@ const Header = () => {
       <nav className="flex items-center justify-between px-3 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 max-w-full">
         {/* Logo/Nombre de la App */}
         <div className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-green-600 select-none">
-          <img
+          <Image
             src="/plant.svg"
             alt="Logo Gestor Verde"
+            width={32}
+            height={32}
             className="w-8 h-8 md:w-10 md:h-10"
+            priority
           />
           Gestor Verde
         </div>

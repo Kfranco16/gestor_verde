@@ -1,0 +1,38 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    // Reglas de seguridad
+    "react/no-danger": "error",
+    "react/no-danger-with-children": "error",
+
+    // Reglas de performance
+    "react-hooks/exhaustive-deps": "warn",
+    "react/jsx-no-bind": "warn",
+
+    // Reglas de código limpio
+    "prefer-const": "error",
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_" }
+    ],
+
+    // Reglas específicas de Next.js
+    "@next/next/no-img-element": "error",
+    "@next/next/no-page-custom-font": "error",
+
+    // Reglas de accesibilidad
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/aria-role": "error",
+    "jsx-a11y/label-has-associated-control": "error"
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/strict-boolean-expressions": "off",
+        "@typescript-eslint/explicit-function-return-type": "off"
+      }
+    }
+  ]
+}

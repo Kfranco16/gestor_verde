@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { supabase } from "@/utils/supabaseClient";
 import { format } from "date-fns/format";
 import { es } from "date-fns/locale/es";
@@ -79,7 +78,11 @@ const UpcomingVisits = () => {
     visitId: number,
     newStatus: "terminada" | "cancelada"
   ) => {
-    const updateData: { status: string; completed_at?: string; cancelled_at?: string } = {
+    const updateData: {
+      status: string;
+      completed_at?: string;
+      cancelled_at?: string;
+    } = {
       status: newStatus,
     };
     if (newStatus === "terminada") {
@@ -226,12 +229,6 @@ const UpcomingVisits = () => {
       ) : (
         <div className="text-center py-8">
           <p className="text-gray-500 mb-3">No hay visitas programadas.</p>
-          <Link
-            href="/dashboard/planner"
-            className="inline-block px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors duration-200"
-          >
-            Programar primera visita
-          </Link>
         </div>
       )}
     </div>

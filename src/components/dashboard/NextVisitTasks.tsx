@@ -106,9 +106,6 @@ const NextVisitTasks = () => {
           <p className="text-gray-500 mb-3">
             No hay tareas porque no hay una próxima visita programada.
           </p>
-          <p className="text-sm text-gray-400">
-            Las tareas aparecerán aquí cuando tengas una visita próxima.
-          </p>
         </div>
       )}
     </div>
