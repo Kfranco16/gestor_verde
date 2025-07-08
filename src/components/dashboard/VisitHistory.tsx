@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/utils/supabaseClient";
 import { format } from "date-fns/format";
 import { es } from "date-fns/locale/es";
+import { useVisitEvents } from "@/utils/visitEvents";
 
 // Tipos de datos
 type Task = { id: number; title: string; is_completed: boolean };
@@ -138,6 +139,8 @@ export default function VisitHistory({ companyId }: { companyId: number }) {
   const [history, setHistory] = useState<HistoricVisit[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { onVisitEvent } = useVisitEvents();
+
   const fetchHistory = useCallback(async () => {
     // Incluimos cancelled_at en la consulta
     const { data, error } = await supabase
@@ -172,7 +175,19 @@ export default function VisitHistory({ companyId }: { companyId: number }) {
 
   useEffect(() => {
     fetchHistory();
-  }, [fetchHistory]);
+
+    // Escuchar cambios de estado de visitas para actualizar el historial
+    const unsubscribeStatusChanged = onVisitEvent(
+      "visit_status_changed",
+      () => {
+        fetchHistory();
+      }
+    );
+
+    return () => {
+      unsubscribeStatusChanged();
+    };
+  }, [fetchHistory, onVisitEvent]);
 
   return (
     <div className="p-6 mt-8 bg-gray-50 rounded-lg shadow-inner">

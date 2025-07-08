@@ -13,6 +13,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { supabase } from "@/utils/supabaseClient";
 import { type Company } from "../empresas/page";
 import VisitTasks from "@/components/dashboard/VisitTasks";
+import { useVisitEvents } from "@/utils/visitEvents";
 
 // Tipos para el planner
 type VisitFromSupabase = {
@@ -141,6 +142,10 @@ const PlannerPage = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [currentView, setCurrentView] = useState<View>(Views.WORK_WEEK);
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Sistema de eventos para notificar cambios
+  const { notifyVisitCreated, notifyVisitDeleted, notifyVisitStatusChanged } =
+    useVisitEvents();
 
   // Modal para crear visita
   const [isNewVisitModalOpen, setIsNewVisitModalOpen] = useState(false);
@@ -292,6 +297,11 @@ const PlannerPage = () => {
       setIsNewVisitModalOpen(false);
       setSelectedCompany("");
       fetchVisits();
+      // Notificar a otros componentes sobre la nueva visita
+      notifyVisitCreated({
+        company_id: selectedCompany,
+        start_time: selectedSlot.start.toISOString(),
+      });
     }
   };
   const handleSelectSlot = useCallback(
@@ -329,6 +339,11 @@ const PlannerPage = () => {
         setIsDetailModalOpen(false);
         setSelectedEvent(null);
         fetchVisits(); // Refrescamos el calendario
+        // Notificar a otros componentes sobre la eliminación
+        notifyVisitDeleted({
+          visit_id: selectedEvent.resource.id,
+          company_name: selectedEvent.title,
+        });
       }
     }
   };
@@ -362,6 +377,12 @@ const PlannerPage = () => {
       alert(`¡Visita marcada como ${newStatus} con éxito!`);
       setIsDetailModalOpen(false);
       fetchVisits(); // Refrescamos el calendario para que la visita desaparezca
+      // Notificar a otros componentes sobre el cambio de estado
+      notifyVisitStatusChanged({
+        visit_id: visitId,
+        new_status: newStatus,
+        company_name: selectedEvent?.title,
+      });
     }
   };
 

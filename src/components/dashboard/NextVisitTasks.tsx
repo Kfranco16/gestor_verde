@@ -6,11 +6,14 @@ import { supabase } from "@/utils/supabaseClient";
 import { format } from "date-fns/format";
 import { es } from "date-fns/locale/es";
 import VisitTasks from "./VisitTasks"; // Reutilizaremos el componente que ya creamos
+import { useVisitEvents } from "@/utils/visitEvents";
 
 const NextVisitTasks = () => {
   const [nextVisitId, setNextVisitId] = useState<number | null>(null);
   const [nextVisitInfo, setNextVisitInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { onVisitEvent } = useVisitEvents();
 
   useEffect(() => {
     const fetchNextVisit = async () => {
@@ -38,14 +41,11 @@ const NextVisitTasks = () => {
         .single(); // .single() para obtener solo un objeto, no un array
 
       if (visitError || !nextVisit) {
-        console.log("No se encontró una próxima visita.", visitError);
         setNextVisitId(null);
         setNextVisitInfo(null);
         setLoading(false);
         return;
       }
-
-      console.log("NextVisit data:", nextVisit); // Debug log
 
       // 3. Si la encontramos, guardamos su ID y su información formateada
       setNextVisitId(nextVisit.id);
@@ -72,17 +72,20 @@ const NextVisitTasks = () => {
 
     fetchNextVisit();
 
-    // Escuchar eventos de cambio de estado de visitas
-    const handleVisitStatusChange = () => {
-      fetchNextVisit();
-    };
-
-    window.addEventListener("visitStatusChanged", handleVisitStatusChange);
+    // Escuchar eventos de cambio de estado de visitas usando el sistema de eventos
+    const unsubscribeCreated = onVisitEvent("visit_created", fetchNextVisit);
+    const unsubscribeDeleted = onVisitEvent("visit_deleted", fetchNextVisit);
+    const unsubscribeStatusChanged = onVisitEvent(
+      "visit_status_changed",
+      fetchNextVisit
+    );
 
     return () => {
-      window.removeEventListener("visitStatusChanged", handleVisitStatusChange);
+      unsubscribeCreated();
+      unsubscribeDeleted();
+      unsubscribeStatusChanged();
     };
-  }, []);
+  }, [onVisitEvent]);
 
   return (
     <div className="p-4 md:p-6 mt-4 bg-white rounded-lg shadow-md">

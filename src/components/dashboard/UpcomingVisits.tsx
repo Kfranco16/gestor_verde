@@ -6,6 +6,7 @@ import { supabase } from "@/utils/supabaseClient";
 import { format } from "date-fns/format";
 import { es } from "date-fns/locale/es";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import { useVisitEvents } from "@/utils/visitEvents";
 
 type UpcomingVisit = {
   id: number;
@@ -17,6 +18,8 @@ const UpcomingVisits = () => {
   const [visits, setVisits] = useState<UpcomingVisit[]>([]);
   const [loading, setLoading] = useState(true);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  const { onVisitEvent, notifyVisitStatusChanged } = useVisitEvents();
 
   useEffect(() => {
     const fetchUpcomingVisits = async () => {
@@ -59,7 +62,27 @@ const UpcomingVisits = () => {
     };
 
     fetchUpcomingVisits();
-  }, []);
+
+    // Escuchar eventos de cambios en las visitas
+    const unsubscribeCreated = onVisitEvent(
+      "visit_created",
+      fetchUpcomingVisits
+    );
+    const unsubscribeDeleted = onVisitEvent(
+      "visit_deleted",
+      fetchUpcomingVisits
+    );
+    const unsubscribeStatusChanged = onVisitEvent(
+      "visit_status_changed",
+      fetchUpcomingVisits
+    );
+
+    return () => {
+      unsubscribeCreated();
+      unsubscribeDeleted();
+      unsubscribeStatusChanged();
+    };
+  }, [onVisitEvent]);
 
   // Cerrar menú cuando se hace clic fuera
   useEffect(() => {
@@ -102,11 +125,13 @@ const UpcomingVisits = () => {
       alert(`¡Visita marcada como ${newStatus} con éxito!`);
       setOpenMenuId(null); // Cerrar el menú
 
-      // Emitir evento para notificar a NextVisitTasks
-      const event = new CustomEvent("visitStatusChanged", {
-        detail: { visitId, newStatus },
+      // Notificar a otros componentes usando el sistema de eventos
+      const visitData = visits.find((v) => v.id === visitId);
+      notifyVisitStatusChanged({
+        visit_id: visitId,
+        new_status: newStatus,
+        company_name: visitData?.companies?.name || "Empresa desconocida",
       });
-      window.dispatchEvent(event);
 
       // Refrescar la lista de visitas
       const {

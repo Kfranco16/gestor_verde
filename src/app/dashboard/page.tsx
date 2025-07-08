@@ -91,9 +91,6 @@ export default function DashboardPage() {
           onClose={() => setIsFormVisible(false)}
           onCompanyAdded={() => {
             // Aquí podrías refrescar la lista de empresas en el futuro
-            console.log(
-              "Una empresa fue añadida, se podría actualizar una lista aquí."
-            );
           }}
         />
       )}

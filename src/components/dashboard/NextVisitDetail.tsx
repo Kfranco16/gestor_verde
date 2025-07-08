@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
+import { useVisitEvents } from "@/utils/visitEvents";
 
 interface Company {
   id: number;
@@ -26,6 +27,8 @@ const NextVisitDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { onVisitEvent } = useVisitEvents();
+
   const fetchNextVisit = async () => {
     try {
       setLoading(true);
@@ -34,8 +37,10 @@ const NextVisitDetail = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) {
         setError("Usuario no autenticado");
+        setLoading(false);
         return;
       }
 
@@ -87,7 +92,6 @@ const NextVisitDetail = () => {
       }
 
       if (!companyData) {
-        // Crear datos básicos para mostrar al menos la visita
         const basicCompanyData = {
           id: nextVisitBasic.company_id,
           name: `Empresa ${nextVisitBasic.company_id}`,
@@ -132,7 +136,6 @@ const NextVisitDetail = () => {
           .lte("start_time", endOfMonth.toISOString());
 
       if (monthlyVisitsError) {
-        // No fallar completamente por esto, solo el contador no funcionará
         setCompletedVisits(0);
         setTotalVisits(0);
       } else {
@@ -158,9 +161,9 @@ const NextVisitDetail = () => {
   useEffect(() => {
     fetchNextVisit();
 
-    // Configurar suscripción en tiempo real para las visitas
-    const channel = supabase
-      .channel("visits_changes")
+    // Configurar suscripciones en tiempo real para múltiples tablas
+    const visitsChannel = supabase
+      .channel("visits_changes_nextvisit")
       .on(
         "postgres_changes",
         {
@@ -169,15 +172,55 @@ const NextVisitDetail = () => {
           table: "visits",
         },
         () => {
-          fetchNextVisit();
+          setTimeout(() => fetchNextVisit(), 100);
         }
       )
       .subscribe();
 
+    const companiesChannel = supabase
+      .channel("companies_changes_nextvisit")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "companies",
+        },
+        () => {
+          setTimeout(() => fetchNextVisit(), 100);
+        }
+      )
+      .subscribe();
+
+    // Escuchar eventos personalizados de otros componentes
+    const unsubscribeVisitCreated = onVisitEvent("visit_created", () => {
+      setTimeout(() => fetchNextVisit(), 100);
+    });
+
+    const unsubscribeVisitUpdated = onVisitEvent("visit_updated", () => {
+      setTimeout(() => fetchNextVisit(), 100);
+    });
+
+    const unsubscribeVisitDeleted = onVisitEvent("visit_deleted", () => {
+      setTimeout(() => fetchNextVisit(), 100);
+    });
+
+    const unsubscribeVisitStatusChanged = onVisitEvent(
+      "visit_status_changed",
+      () => {
+        setTimeout(() => fetchNextVisit(), 100);
+      }
+    );
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(visitsChannel);
+      supabase.removeChannel(companiesChannel);
+      unsubscribeVisitCreated();
+      unsubscribeVisitUpdated();
+      unsubscribeVisitDeleted();
+      unsubscribeVisitStatusChanged();
     };
-  }, []);
+  }, []); // Array de dependencias vacío para que solo se ejecute una vez
 
   if (loading) {
     return (
@@ -186,7 +229,7 @@ const NextVisitDetail = () => {
           Próxima Visita
         </h2>
         <div className="flex items-center justify-center h-32">
-          <div className="text-gray-500">Cargando...</div>
+          <div className="text-gray-500">Cargando próxima visita...</div>
         </div>
       </div>
     );
@@ -200,6 +243,14 @@ const NextVisitDetail = () => {
         </h2>
         <div className="p-4 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-600">{error}</p>
+          <button
+            onClick={() => {
+              fetchNextVisit();
+            }}
+            className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
