@@ -19,9 +19,14 @@ type VisitFromSupabase = {
   id: number;
   start_time: string;
   end_time: string;
-  companies: {
-    name: string;
-  }[];
+  companies:
+    | {
+        name: string;
+      }[]
+    | {
+        name: string;
+      }
+    | null;
 };
 
 type CalendarEvent = {
@@ -152,22 +157,72 @@ const PlannerPage = () => {
   );
 
   const fetchVisits = useCallback(async () => {
-    // MODIFICADO: Ahora solo pedimos las visitas con estado 'creada' para el calendario
+    // 1. Primero obtenemos el usuario actual
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("Usuario no autenticado");
+      return;
+    }
+
+    // 2. Filtramos las visitas por usuario actual
     const { data: visits, error } = await supabase
       .from("visits")
-      .select(`id, start_time, end_time, companies ( name )`)
-      .eq("status", "creada"); // Solo mostramos las visitas planeadas
+      .select(
+        `
+        id, 
+        start_time, 
+        end_time, 
+        company_id,
+        companies!inner ( name )
+      `
+      )
+      .eq("status", "creada") // Solo mostramos las visitas planeadas
+      .eq("user_id", user.id); // Filtrar por usuario actual
+
     if (error) {
       console.error("Error al obtener las visitas:", error);
       return;
     }
+
     const calendarEvents: CalendarEvent[] =
-      visits?.map((visit: VisitFromSupabase) => ({
-        title: visit.companies?.[0]?.name || "Visita",
-        start: new Date(visit.start_time),
-        end: new Date(visit.end_time),
-        resource: { id: visit.id },
-      })) || [];
+      visits?.map((visit: VisitFromSupabase) => {
+        // Función helper para extraer el nombre de la empresa
+        const getCompanyName = (
+          companies: VisitFromSupabase["companies"]
+        ): string => {
+          if (!companies) return "Visita sin empresa";
+
+          // Si es un array
+          if (Array.isArray(companies)) {
+            if (companies.length > 0 && companies[0]?.name) {
+              return companies[0].name;
+            }
+          }
+
+          // Si es un objeto directo
+          if (
+            typeof companies === "object" &&
+            "name" in companies &&
+            companies.name
+          ) {
+            return companies.name;
+          }
+
+          return "Visita sin empresa";
+        };
+
+        const companyName = getCompanyName(visit.companies);
+
+        return {
+          title: companyName,
+          start: new Date(visit.start_time),
+          end: new Date(visit.end_time),
+          resource: { id: visit.id },
+        };
+      }) || [];
+
     setEvents(calendarEvents);
   }, []);
   useEffect(() => {
@@ -183,8 +238,21 @@ const PlannerPage = () => {
 
     fetchVisits();
     const fetchCompanies = async () => {
-      // Trae todos los campos requeridos por Company
-      const { data, error } = await supabase.from("companies").select();
+      // 1. Primero obtenemos el usuario actual
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error("Usuario no autenticado");
+        return;
+      }
+
+      // 2. Filtramos las empresas por usuario actual
+      const { data, error } = await supabase
+        .from("companies")
+        .select()
+        .eq("user_id", user.id); // Filtrar por usuario actual
+
       if (error) {
         console.error("Error al obtener empresas:", error);
         return;
