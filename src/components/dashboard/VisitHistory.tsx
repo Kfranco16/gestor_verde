@@ -12,6 +12,7 @@ type HistoricVisit = {
   id: number;
   status: "terminada" | "cancelada";
   completed_at: string | null;
+  cancelled_at: string | null;
   report_summary: string | null;
   tasks: Task[];
 };
@@ -52,8 +53,10 @@ const HistoryCard = ({
           Visita {visit.status}
         </p>
         <p className="text-sm text-gray-500">
-          {visit.completed_at
-            ? format(new Date(visit.completed_at), "PPP", { locale: es })
+          {visit.status === "terminada" && visit.completed_at
+            ? format(new Date(visit.completed_at), "PPP 'a las' p", { locale: es })
+            : visit.status === "cancelada" && visit.cancelled_at
+            ? format(new Date(visit.cancelled_at), "PPP 'a las' p", { locale: es })
             : "N/A"}
         </p>
       </div>
@@ -132,20 +135,31 @@ export default function VisitHistory({ companyId }: { companyId: number }) {
   const [loading, setLoading] = useState(true);
 
   const fetchHistory = useCallback(async () => {
-    // La consulta no cambia
+    // Incluimos cancelled_at en la consulta
     const { data, error } = await supabase
       .from("visits")
       .select(
-        `id, status, completed_at, report_summary, tasks ( id, title, is_completed )`
+        `id, status, completed_at, cancelled_at, report_summary, tasks ( id, title, is_completed )`
       )
       .eq("company_id", companyId)
-      .in("status", ["terminada", "cancelada"])
-      .order("completed_at", { ascending: false });
+      .in("status", ["terminada", "cancelada"]);
 
     if (error) {
       console.error("Error al obtener el historial:", error);
     } else {
-      setHistory(data as HistoricVisit[]);
+      // Ordenamos manualmente por la fecha correspondiente según el status
+      const sortedData = (data as HistoricVisit[]).sort((a, b) => {
+        const dateA = a.status === "terminada" ? a.completed_at : a.cancelled_at;
+        const dateB = b.status === "terminada" ? b.completed_at : b.cancelled_at;
+        
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
+      
+      setHistory(sortedData);
     }
     setLoading(false);
   }, [companyId]);

@@ -38,17 +38,28 @@ const NextVisitTasks = () => {
         .single(); // .single() para obtener solo un objeto, no un array
 
       if (visitError || !nextVisit) {
-        console.log("No se encontró una próxima visita.");
+        console.log("No se encontró una próxima visita.", visitError);
         setNextVisitId(null);
         setNextVisitInfo(null);
         setLoading(false);
         return;
       }
 
+      console.log("NextVisit data:", nextVisit); // Debug log
+
       // 3. Si la encontramos, guardamos su ID y su información formateada
       setNextVisitId(nextVisit.id);
-      const companyName =
-        (nextVisit.companies as any)?.name || "Empresa no encontrada";
+      // Manejo flexible para objeto o array
+      const companyName = (() => {
+        if (!nextVisit.companies) return "Empresa no encontrada";
+        if (Array.isArray(nextVisit.companies)) {
+          return nextVisit.companies[0]?.name || "Empresa no encontrada";
+        }
+        return (
+          (nextVisit.companies as { name: string }).name ||
+          "Empresa no encontrada"
+        );
+      })();
       setNextVisitInfo(
         `${companyName} - ${format(
           new Date(nextVisit.start_time),

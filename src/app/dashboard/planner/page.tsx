@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, FormEvent } from "react";
-import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
+import { Calendar, dateFnsLocalizer, Views, View } from "react-big-calendar";
 import { format } from "date-fns/format";
 import { parse } from "date-fns/parse";
 import { startOfWeek } from "date-fns/startOfWeek";
@@ -13,6 +13,23 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { supabase } from "@/utils/supabaseClient";
 import { type Company } from "../empresas/page";
 import VisitTasks from "@/components/dashboard/VisitTasks";
+
+// Tipos para el planner
+type VisitFromSupabase = {
+  id: number;
+  start_time: string;
+  end_time: string;
+  companies: {
+    name: string;
+  }[];
+};
+
+type CalendarEvent = {
+  title: string;
+  start: Date;
+  end: Date;
+  resource: { id: number };
+};
 
 // Estilos CSS específicos para móviles
 const mobileCalendarStyles = `
@@ -111,20 +128,13 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-type CalendarEvent = {
-  title: string;
-  start: Date;
-  end: Date;
-  resource: { id: number };
-};
-
 const PlannerPage = () => {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [currentView, setCurrentView] = useState(Views.WORK_WEEK);
+  const [currentView, setCurrentView] = useState<View>(Views.WORK_WEEK);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Modal para crear visita
@@ -151,9 +161,9 @@ const PlannerPage = () => {
       console.error("Error al obtener las visitas:", error);
       return;
     }
-    const calendarEvents =
-      visits?.map((visit: any) => ({
-        title: visit.companies?.name || "Visita",
+    const calendarEvents: CalendarEvent[] =
+      visits?.map((visit: VisitFromSupabase) => ({
+        title: visit.companies?.[0]?.name || "Visita",
         start: new Date(visit.start_time),
         end: new Date(visit.end_time),
         resource: { id: visit.id },
@@ -175,6 +185,10 @@ const PlannerPage = () => {
     const fetchCompanies = async () => {
       // Trae todos los campos requeridos por Company
       const { data, error } = await supabase.from("companies").select();
+      if (error) {
+        console.error("Error al obtener empresas:", error);
+        return;
+      }
       if (data) setCompanies(data as Company[]);
     };
     fetchCompanies();
@@ -256,11 +270,13 @@ const PlannerPage = () => {
     visitId: number,
     newStatus: "terminada" | "cancelada"
   ) => {
-    const updateData: { status: string; completed_at?: string } = {
+    const updateData: { status: string; completed_at?: string; cancelled_at?: string } = {
       status: newStatus,
     };
     if (newStatus === "terminada") {
       updateData.completed_at = new Date().toISOString(); // Guardamos la fecha y hora actual
+    } else if (newStatus === "cancelada") {
+      updateData.cancelled_at = new Date().toISOString(); // Guardamos la fecha y hora de cancelación
     }
 
     const { error } = await supabase
@@ -282,7 +298,7 @@ const PlannerPage = () => {
     setCurrentDate(newDate);
   }, []);
 
-  const handleViewChange = useCallback((view: any) => {
+  const handleViewChange = useCallback((view: View) => {
     setCurrentView(view);
   }, []);
 

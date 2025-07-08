@@ -48,10 +48,10 @@ const UpcomingVisits = () => {
       } else {
         // Transformamos los datos para que coincidan con nuestro tipo
         const transformedData: UpcomingVisit[] = (data || []).map(
-          (visit: any) => ({
+          (visit: { id: number; start_time: string; companies: unknown }) => ({
             id: visit.id,
             start_time: visit.start_time,
-            companies: visit.companies,
+            companies: visit.companies as { name: string } | null,
           })
         );
         setVisits(transformedData);
@@ -79,11 +79,13 @@ const UpcomingVisits = () => {
     visitId: number,
     newStatus: "terminada" | "cancelada"
   ) => {
-    const updateData: { status: string; completed_at?: string } = {
+    const updateData: { status: string; completed_at?: string; cancelled_at?: string } = {
       status: newStatus,
     };
     if (newStatus === "terminada") {
       updateData.completed_at = new Date().toISOString();
+    } else if (newStatus === "cancelada") {
+      updateData.cancelled_at = new Date().toISOString();
     }
 
     const { error } = await supabase
@@ -120,10 +122,14 @@ const UpcomingVisits = () => {
 
         if (!error) {
           const transformedData: UpcomingVisit[] = (data || []).map(
-            (visit: any) => ({
+            (visit: {
+              id: number;
+              start_time: string;
+              companies: unknown;
+            }) => ({
               id: visit.id,
               start_time: visit.start_time,
-              companies: visit.companies,
+              companies: visit.companies as { name: string } | null,
             })
           );
           setVisits(transformedData);
@@ -153,7 +159,18 @@ const UpcomingVisits = () => {
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <p className="font-semibold text-gray-800 mb-1">
-                    {visit.companies?.name || "Empresa no encontrada"}
+                    {(() => {
+                      if (!visit.companies) return "Empresa no encontrada";
+                      if (Array.isArray(visit.companies)) {
+                        return (
+                          visit.companies[0]?.name || "Empresa no encontrada"
+                        );
+                      }
+                      return (
+                        (visit.companies as { name: string }).name ||
+                        "Empresa no encontrada"
+                      );
+                    })()}
                   </p>
                   <p className="text-sm text-gray-600">
                     {format(
