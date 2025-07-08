@@ -50,7 +50,17 @@ export default function DashboardPage() {
           <NextVisitDetail />
         </div>
 
-        {/* Fila 1, Columna 2: Sección de Empresas */}
+        {/* Fila 1, Columna 2: Planificador de Visitas */}
+        <div>
+          <Planner />
+        </div>
+
+        {/* Fila 2, Columna 1: Tareas de la Próxima Visita */}
+        <div>
+          <NextVisitTasks />
+        </div>
+
+        {/* Fila 2, Columna 2: Sección de Empresas */}
         <div className="p-6 bg-white rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-gray-700">Empresas</h2>
           <p className="mt-2 text-gray-500">
@@ -72,16 +82,6 @@ export default function DashboardPage() {
               Gestionar Empresas
             </Link>
           </div>
-        </div>
-
-        {/* Fila 2, Columna 1: Planificador de Visitas */}
-        <div>
-          <Planner />
-        </div>
-
-        {/* Fila 2, Columna 2: Tareas de la Próxima Visita */}
-        <div>
-          <NextVisitTasks />
         </div>
       </div>
 

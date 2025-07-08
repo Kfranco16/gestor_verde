@@ -88,7 +88,7 @@ const NextVisitTasks = () => {
   }, [onVisitEvent]);
 
   return (
-    <div className="p-4 md:p-6 mt-4 bg-white rounded-lg shadow-md">
+    <div className="p-4 md:p-6 bg-white rounded-lg shadow-md">
       <h3 className="text-lg md:text-xl font-bold text-gray-700 mb-4">
         Tareas de la Próxima Visita
       </h3>
