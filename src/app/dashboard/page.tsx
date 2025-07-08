@@ -43,43 +43,43 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Sección de Empresas con los dos botones */}
-      <div className="p-6 mt-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-gray-700">Empresas</h2>
-        <p className="mt-2 text-gray-500">
-          Añade nuevas empresas o gestiona tu lista de clientes.
-        </p>
-        <div className="flex flex-col gap-4 mt-6 md:flex-row">
-          {/* Botón 1: Abre el modal */}
-          <button
-            onClick={() => setIsFormVisible(true)}
-            className="px-6 py-3 font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition-colors duration-300"
-          >
-            + Agregar Nueva Empresa
-          </button>
-          {/* Botón 2: Navega a la otra página */}
-          <Link
-            href="/dashboard/empresas"
-            className="px-6 py-3 font-semibold text-center text-gray-700 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 transition-colors duration-300"
-          >
-            Gestionar Empresas
-          </Link>
-        </div>
-      </div>
-
-      {/* Sección de Próxima Visita */}
-      <div className="mt-8">
-        <NextVisitDetail />
-      </div>
-
-      {/* Grid principal con secciones del dashboard */}
+      {/* Grid responsivo principal - Layout 2x2 en desktop */}
       <div className="grid gap-8 mt-8 lg:grid-cols-2">
-        {/* Columna izquierda: Planificador de Visitas */}
+        {/* Fila 1, Columna 1: NextVisitDetail */}
+        <div>
+          <NextVisitDetail />
+        </div>
+
+        {/* Fila 1, Columna 2: Sección de Empresas */}
+        <div className="p-6 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-gray-700">Empresas</h2>
+          <p className="mt-2 text-gray-500">
+            Añade nuevas empresas o gestiona tu lista de clientes.
+          </p>
+          <div className="flex flex-col gap-4 mt-6 md:flex-row">
+            {/* Botón 1: Abre el modal */}
+            <button
+              onClick={() => setIsFormVisible(true)}
+              className="px-6 py-3 font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition-colors duration-300"
+            >
+              + Agregar Nueva Empresa
+            </button>
+            {/* Botón 2: Navega a la otra página */}
+            <Link
+              href="/dashboard/empresas"
+              className="px-6 py-3 font-semibold text-center text-gray-700 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 transition-colors duration-300"
+            >
+              Gestionar Empresas
+            </Link>
+          </div>
+        </div>
+
+        {/* Fila 2, Columna 1: Planificador de Visitas */}
         <div>
           <Planner />
         </div>
 
-        {/* Columna derecha: Tareas de la Próxima Visita */}
+        {/* Fila 2, Columna 2: Tareas de la Próxima Visita */}
         <div>
           <NextVisitTasks />
         </div>
