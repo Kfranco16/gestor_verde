@@ -3,6 +3,7 @@ import { supabase } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
 
 const Header = () => {
@@ -46,11 +47,29 @@ const Header = () => {
               <Bars3Icon className="w-6 h-6 text-gray-700" />
             )}
           </button>
-          {/* Botón de cerrar sesión: visible siempre en desktop, y en mobile dentro del menú */}
-          <div className="hidden sm:block">
+          {/* Botones de navegación y cerrar sesión: visibles solo en desktop */}
+          <div className="hidden sm:flex items-center gap-2">
+            <Link
+              href="/dashboard"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 rounded-md transition-colors duration-200"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/dashboard/empresas"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 rounded-md transition-colors duration-200"
+            >
+              Gestionar Empresas
+            </Link>
+            <Link
+              href="/dashboard/planner"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 rounded-md transition-colors duration-200"
+            >
+              Planificador
+            </Link>
             <button
               onClick={handleLogout}
-              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 rounded-md"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 rounded-md transition-colors duration-200"
             >
               Cerrar Sesión
             </button>
@@ -60,15 +79,38 @@ const Header = () => {
       {/* Menú colapsable para mobile/tablet */}
       {menuOpen && (
         <div className="sm:hidden px-3 pb-2 bg-white border-b border-gray-100 animate-fade-in-down">
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              handleLogout();
-            }}
-            className="w-full px-3 py-2 text-left text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 rounded-md"
-          >
-            Cerrar Sesión
-          </button>
+          <div className="flex flex-col gap-2 items-end">
+            <Link
+              href="/dashboard"
+              onClick={() => setMenuOpen(false)}
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 rounded-md transition-colors duration-200"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/dashboard/empresas"
+              onClick={() => setMenuOpen(false)}
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 rounded-md transition-colors duration-200"
+            >
+              Gestionar Empresas
+            </Link>
+            <Link
+              href="/dashboard/planner"
+              onClick={() => setMenuOpen(false)}
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 rounded-md transition-colors duration-200"
+            >
+              Planificador
+            </Link>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                handleLogout();
+              }}
+              className="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 rounded-md transition-colors duration-200"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
       )}
     </header>

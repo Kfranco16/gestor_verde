@@ -36,7 +36,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="p-10 text-center bg-white rounded-lg shadow-md">
+      <div className="p-10 text-center bg-white bg-[url('/plant-pattern-diverse.svg')] bg-[length:140px_140px] bg-repeat rounded-lg shadow-md">
         <h1 className="text-4xl font-bold text-gray-800">Panel de Control</h1>
         <p className="mt-4 text-lg text-gray-600">
           Bienvenida a Gestor Verde, Nana.
