@@ -6,6 +6,7 @@ import AddCompanyForm from "@/components/dashboard/AddCompanyForm";
 import Link from "next/link";
 import Planner from "@/components/dashboard/Planner";
 import NextVisitTasks from "@/components/dashboard/NextVisitTasks";
+import NextVisitDetail from "@/components/dashboard/NextVisitDetail";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -64,6 +65,11 @@ export default function DashboardPage() {
             Gestionar Empresas
           </Link>
         </div>
+      </div>
+
+      {/* Sección de Próxima Visita */}
+      <div className="mt-8">
+        <NextVisitDetail />
       </div>
 
       {/* Grid principal con secciones del dashboard */}
