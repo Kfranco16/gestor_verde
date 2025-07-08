@@ -197,9 +197,6 @@ export default function VisitTasks({ visitId }: { visitId: number }) {
             <p className="text-gray-500 mb-2">
               No hay tareas para esta visita.
             </p>
-            <p className="text-sm text-gray-400">
-              Añade una tarea usando el formulario de arriba.
-            </p>
           </div>
         )}
       </div>

@@ -220,7 +220,7 @@ const ManageCompaniesPage = () => {
       {editingCompany && (
         <form
           onSubmit={handleEditCompany}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-transparent"
         >
           <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
             <h3 className="mb-4 text-lg font-semibold text-center">
